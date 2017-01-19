@@ -58,8 +58,19 @@ app.post('/webhook/', function (req, res) {
         }
         if (event.postback) {
             let text = JSON.stringify(event.postback)
-            sendTextMessage(sender, "Postback received: "+text.substring(9, 200), token)
-            continue
+
+            let action = text.substring(12, 200);
+
+            if(action == 'Unauthorized TXN') {
+               var type = 'Unauthorized TXN';
+            }
+            else if(action == 'Fraud TXN') {
+                type = 'Fraud TXN';
+            }
+            else
+                type = 'Fishy TXN';
+
+            sendTextMessage(sender, "Postback received: "+type, token)
         }
     }
     res.sendStatus(200)

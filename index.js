@@ -59,7 +59,7 @@ app.post('/webhook/', function (req, res) {
         if (event.postback) {
             let text = JSON.stringify(event.postback)
 
-            let action = text.substring(12, 200);
+            let action = event.postback.payload;
 
             console.log(action);
 
@@ -72,7 +72,7 @@ app.post('/webhook/', function (req, res) {
             else
                 type = 'Fishy TXN';
 
-            sendTextMessage(sender, "Received: "+event.postback.payload, token)
+            sendTextMessage(sender, "Received: "+action+" Type:"+type, token)
             continue
         }
     }

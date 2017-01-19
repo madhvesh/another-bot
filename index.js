@@ -61,16 +61,19 @@ app.post('/webhook/', function (req, res) {
 
             let action = text.substring(12, 200);
 
-            if(action == 'Unauthorized TXN') {
+            console.log(action);
+
+            if(action == 'Unauthorized') {
                var type = 'Unauthorized TXN';
             }
-            else if(action == 'Fraud TXN') {
+            else if(action == 'Fraud') {
                 type = 'Fraud TXN';
             }
             else
                 type = 'Fishy TXN';
 
             sendTextMessage(sender, "Postback received: "+type, token)
+            continue
         }
     }
     res.sendStatus(200)
@@ -109,17 +112,17 @@ function sendGenericMessage(sender) {
                     {
                         "type": "postback",
                         "title": "Unauthorized TXN",
-                        "payload": "Unauthorized TXN"
+                        "payload": "Unauthorized"
                     },
                     {
                         "type": "postback",
                         "title": "Fraud TXN",
-                        "payload": "Fraud TXN"
+                        "payload": "Fraud"
                     },
                     {
                         "type": "postback",
                         "title": "Fishy TXN",
-                        "payload": "Fishy TXN"
+                        "payload": "Fishy"
                     }
                 ]
             }

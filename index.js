@@ -72,7 +72,7 @@ app.post('/webhook/', function (req, res) {
             else
                 type = 'Fishy TXN';
 
-            sendTextMessage(sender, "Received: "+text.substring(12, 200), token)
+            sendTextMessage(sender, "Received: "+event.postback.payload, token)
             continue
         }
     }

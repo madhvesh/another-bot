@@ -132,6 +132,11 @@ function sendGenericMessage(sender) {
                         "type": "postback",
                         "title": "Fishy TXN",
                         "payload": "Fishy"
+                    },
+                    {
+                        "type": "postback",
+                        "title": "More Options",
+                        "payload": "More"
                     }
                 ]
             }

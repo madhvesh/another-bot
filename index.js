@@ -8,7 +8,12 @@ const bodyParser = require('body-parser')
 const request = require('request')
 const app = express()
 
+var VERIFY_TOKEN = 'my_voice_is_my_password_verify_me';
+var PAGE_ACCESS_TOKEN = 'EAAYxYoSrxRABAMR0s88ZACvd1EF5wO83g0N4sCCKX5HJ7td5ZA53r00JNoKMhdnupvc1lIiLSKD6T51ZCZC7qpTEqlB944dCpvecCZCULhBMKPEBw56quAYx2ZAMHUaLdQ5LOD1vBYRZBe25BXZA3zHd5bpeGyXY5HMMlms4RRDO2wZDZD';
+
 app.set('port', (process.env.PORT || 5000))
+
+
 
 // Process application/x-www-form-urlencoded
 app.use(bodyParser.urlencoded({extended: false}))
@@ -23,12 +28,16 @@ app.get('/', function (req, res) {
 })
 
 // for Facebook verification
-app.get('/webhook/', function (req, res) {
-    if (req.query['hub.verify_token'] === 'my_voice_is_my_password_verify_me') {
-        res.send(req.query['hub.challenge'])
+app.get('/webhook', function(req, res) {
+    if (req.query['hub.mode'] === 'subscribe' &&
+        req.query['hub.verify_token'] === VERIFY_TOKEN) {
+        console.log("Validating webhook");
+        res.status(200).send(req.query['hub.challenge']);
+    } else {
+        console.error("Failed validation. Make sure the validation tokens match.");
+        res.sendStatus(403);
     }
-    res.send('Error, wrong token')
-})
+});
 
 // app.post('/webhook/', function (req, res) {
 //     let messaging_events = req.body.entry[0].messaging
@@ -130,7 +139,7 @@ function sendGenericMessage(sender) {
     }
     request({
         url: 'https://graph.facebook.com/v2.6/me/messages',
-        qs: {access_token:token},
+        qs: {access_token:PAGE_ACCESS_TOKEN},
         method: 'POST',
         json: {
             recipient: {id:sender},

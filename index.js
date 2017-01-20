@@ -138,13 +138,33 @@ function sendGenericMessage(sender) {
         }
     }
     request({
-        url: 'https://graph.facebook.com/v2.6/me/messages',
+        //url: 'https://graph.facebook.com/v2.6/me/messages',
+        url: 'https://graph.facebook.com/v2.6/me/thread_settings',
         qs: {access_token:PAGE_ACCESS_TOKEN},
         method: 'POST',
+
         json: {
-            recipient: {id:sender},
-            message: messageData,
+            "setting_type": "call_to_actions",
+            "thread_state": "existing_thread",
+            "call_to_actions": [
+
+                {
+                    "type": "postback",
+                    "title": "Help",
+                    "payload": "HELP"
+                },
+                {
+                    "type": "postback",
+                    "title": "Restart",
+                    "payload": "Restart"
+                }
+
+            ]
         }
+        // json: {
+        //     recipient: {id:sender},
+        //     message: messageData,
+        // }
     }, function(error, response, body) {
         if (error) {
             console.log('Error sending messages: ', error)

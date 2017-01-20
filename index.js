@@ -138,8 +138,8 @@ function sendGenericMessage(sender) {
         }
     }
     request({
-        //url: 'https://graph.facebook.com/v2.6/me/messages',
-        url: 'https://graph.facebook.com/v2.6/me/thread_settings',
+        url: 'https://graph.facebook.com/v2.6/me/messages',
+        //url: 'https://graph.facebook.com/v2.6/me/thread_settings',
         qs: {access_token:PAGE_ACCESS_TOKEN},
         method: 'POST',
 

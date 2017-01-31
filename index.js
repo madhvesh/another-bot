@@ -9,8 +9,7 @@ const request = require('request')
 const app = express()
 
 var VERIFY_TOKEN = 'my_voice_is_my_password_verify_me';
-var PAGE_ACCESS_TOKEN = 'EAAYxYoSrxRABAMR0s88ZACvd1EF5wO83g0N4sCCKX5HJ7td5ZA53r00JNoKMhdnupvc1lIiLSKD6T51ZCZC7qpTEqlB944dCpvecCZCULhBMKPEBw56quAYx2ZAMHUaLdQ5LOD1vBYRZBe25BXZA3zHd5bpeGyXY5HMMlms4RRDO2wZDZD';
-
+var PAGE_ACCESS_TOKEN = 'EAAYxYoSrxRABAPsdBeZB6hR4FmUJR8dTZCP8kvlStkkU3xqUwTHzaBABbh0NESZA2UMtBqpx6ZAQ5FscE7ERe9u9xDsId52U6l6EOy8SqiZAsM3r0ZBUUwNfROtyZA9jiDB8uj8H4a22YZC5gKsumbiVRruxy323ErEYjAmjyW0KOQZDZD';
 app.set('port', (process.env.PORT || 5000))
 
 
@@ -23,34 +22,21 @@ app.use(bodyParser.json())
 
 // Index route
 app.get('/', function (req, res) {
-    console.log('page token: ',process.env.FB_PAGE_ACCESS_TOKEN)
-    res.send('Hello world, I am a maddy bot')
-})
+    res.send('This is TestBot Server');
+});
 
 // for Facebook verification
-app.get('/webhook', function(req, res) {
-    if (req.query['hub.mode'] === 'subscribe' &&
-        req.query['hub.verify_token'] === VERIFY_TOKEN) {
-        console.log("Validating webhook");
-        res.status(200).send(req.query['hub.challenge']);
+
+
+app.get('/webhook', function (req, res) {
+    if (req.query['hub.verify_token'] === VERIFY_TOKEN) {
+        console.log('Verify request');
+        res.send(req.query['hub.challenge']);
     } else {
-        console.error("Failed validation. Make sure the validation tokens match.");
-        res.sendStatus(403);
+        res.send('Invalid verify token');
     }
 });
 
-// app.post('/webhook/', function (req, res) {
-//     let messaging_events = req.body.entry[0].messaging
-//     for (let i = 0; i < messaging_events.length; i++) {
-//         let event = req.body.entry[0].messaging[i]
-//         let sender = event.sender.id
-//         if (event.message && event.message.text) {
-//             let text = event.message.text
-//             sendTextMessage(sender, "Text received, echo: " + text.substring(0, 200))
-//         }
-//     }
-//     res.sendStatus(200)
-// })
 
 app.post('/webhook/', function (req, res) {
     let messaging_events = req.body.entry[0].messaging
@@ -59,11 +45,11 @@ app.post('/webhook/', function (req, res) {
         let sender = event.sender.id
         if (event.message && event.message.text) {
             let text = event.message.text
-            if (text === 'Generic') {
+            if (text === 'Create Dispute') {
                 sendGenericMessage(sender)
                 continue
             }
-            sendTextMessage(sender, "Text received, echo: " + text.substring(0, 200))
+            //sendTextMessage(sender, "Text received, echo: " + text.substring(0, 200))
         }
         if (event.postback) {
             let text = JSON.stringify(event.postback)
@@ -74,39 +60,48 @@ app.post('/webhook/', function (req, res) {
 
             if(action == 'Unauthorized') {
                var type = 'Unauthorized TXN';
+                sendUnAuthorizedMessage(sender);
+                continue
             }
+
             else if(action == 'Fraud') {
                 type = 'Fraud TXN';
+                sendFraudMessage(sender);
+                continue
             }
-            else
+            else if(action == 'Fishy') {
                 type = 'Fishy TXN';
-
-            sendTextMessage(sender, "Received: "+action+" Type:"+type, token)
+                sendFishyMessage(sender);
+                continue
+            }
+            else {
+            sendTextMessage(sender, "Received: "+action)
             continue
+            }
         }
     }
     res.sendStatus(200)
 })
 
-const token = "EAAYxYoSrxRABAH91PyHWTZCZBgbh1sKf9ZAsSPZBr3miKANrc9RO1oV3rIPU3ZANz9LfmEo41Rcv8H9cYZB03fhQamRN0uZAd4TnPtTS4Y6A3l8ztLUA1WtjZCNX3y6tyLvtznWXGpgxB8jhjuHZCORhFWDnYFKkwMSy7zAZCmXNNNBAZDZD"
 
 function sendTextMessage(sender, text) {
     let messageData = { text:text }
-    request({
-        url: 'https://graph.facebook.com/v2.6/me/messages',
-        qs: {access_token:token},
-        method: 'POST',
-        json: {
-            recipient: {id:sender},
-            message: messageData,
-        }
-    }, function(error, response, body) {
-        if (error) {
-            console.log('Error sending messages: ', error)
-        } else if (response.body.error) {
-            console.log('Error: ', response.body.error)
-        }
-    })
+    callSendAPI(messageData,sender);
+    // request({
+    //     url: 'https://graph.facebook.com/v2.6/me/messages',
+    //     qs: {access_token:PAGE_ACCESS_TOKEN},
+    //     method: 'POST',
+    //     json: {
+    //         recipient: {id:sender},
+    //         message: messageData,
+    //     }
+    // }, function(error, response, body) {
+    //     if (error) {
+    //         console.log('Error sending messages: ', error)
+    //     } else if (response.body.error) {
+    //         console.log('Error: yyyy ', response.body.error)
+    //     }
+    // })
 }
 
 
@@ -116,7 +111,7 @@ function sendGenericMessage(sender) {
             "type": "template",
             "payload": {
                 "template_type": "button",
-                "text": "Hi Maddy"  + ", How can I help you. What do you want to report?",
+                "text": "Hi Madhvesh"  + ", How can I help you. What do you want to report?",
                 "buttons": [
                     {
                         "type": "postback",
@@ -137,45 +132,123 @@ function sendGenericMessage(sender) {
             }
         }
     }
-    request({
-        url: 'https://graph.facebook.com/v2.6/me/messages',
-        //url: 'https://graph.facebook.com/v2.6/me/thread_settings',
-        qs: {access_token:PAGE_ACCESS_TOKEN},
-        method: 'POST',
+    callSendAPI(messageData,sender);
 
+}
+
+function sendFishyMessage(sender) {
+    var messageData = {
+        "attachment": {
+            "type": "template",
+            "payload": {
+                "template_type": "button",
+                "text": "Okay, you believe something has gone wrong with this transaction/purchase",
+                "buttons": [
+                    {
+                        "type": "postback",
+                        "title": "Did not receive item/cash",
+                        "payload": "Did not receive item/cash"
+                    },
+                    {
+                        "type": "postback",
+                        "title": " Problem with goods/services",
+                        "payload": " Problem with goods/services"
+                    },
+                    {
+                        "type": "postback",
+                        "title": "Problem with transaction",
+                        "payload": "Problem with transaction"
+                    }
+                ]
+            }
+        }
+    };
+    callSendAPI(messageData, sender);
+}
+
+function sendFraudMessage(sender) {
+    var messageData = {
+        "attachment": {
+            "type": "template",
+            "payload": {
+                "template_type": "button",
+                "text": "You have your card but believe it has been compromised?(select Compromised)",
+                "buttons": [
+                    {
+                        "type": "postback",
+                        "title": "Yes have card",
+                        "payload": "yes_card"
+                    },
+                    {
+                        "type": "postback",
+                        "title": "Don't have card",
+                        "payload": "no_card"
+                    },
+                    {
+                        "type": "postback",
+                        "title": "Compromised card",
+                        "payload": "compromised_card"
+                    }
+                ]
+            }
+        }
+    };
+    callSendAPI(messageData, sender);
+}
+
+function sendUnAuthorizedMessage(sender) {
+    var messageData = {
+        "attachment": {
+            "type": "template",
+            "payload": {
+                "template_type": "button",
+                "text": "I see, so you are not sure if you had authorized the transaction/purchase. What exactly you don't recognize?",
+                "buttons": [
+                    {
+                        "type": "postback",
+                        "title": "Merchant",
+                        "payload": "I don’t recognize the Merchant"
+                    },
+                    {
+                        "type": "postback",
+                        "title": "Amount",
+                        "payload": "I don’t recognize the Amount"
+                    },
+                    {
+                        "type": "postback",
+                        "title": "Merchant/Amount",
+                        "payload": "I don’t recognize the Merchant/Amount"
+                    }
+                ]
+            }
+        }
+    };
+    callSendAPI(messageData, sender);
+}
+
+function callSendAPI(messageData,sender) {
+    request({
+        uri: 'https://graph.facebook.com/v2.6/me/messages',
+        qs: { access_token: PAGE_ACCESS_TOKEN },
+        method: 'POST',
         json: {
             recipient: {id:sender},
-            message: messageData,
+            message: messageData
+         }
 
-            "setting_type": "call_to_actions",
+    }, function (error, response, body) {
+        if (!error && response.statusCode == 200) {
+            var recipientId = body.recipient_id;
+            var messageId = body.message_id;
 
-            "thread_state": "existing_thread",
-            "call_to_actions": [
-
-                {
-                    "type": "postback",
-                    "title": "Help",
-                    "payload": "HELP"
-                },
-                {
-                    "type": "postback",
-                    "title": "Restart",
-                    "payload": "Restart"
-                }
-
-            ]
+            console.log("Successfully sent generic message with id %s to recipient %s",
+                messageId, recipientId);
+        } else {
+            console.error("Unable to send message.");
+            //console.error(response);
+            //console.error(error);
         }
-        // json: {
-        //     recipient: {id:sender},
-        //     message: messageData,
-        // }
-    }, function(error, response, body) {
-        if (error) {
-            console.log('Error sending messages: ', error)
-        } else if (response.body.error) {
-            console.log('Error: ', response.body.error)
-        }
-    })
+    });
 }
 
 // Spin up the server

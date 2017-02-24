@@ -3,22 +3,23 @@
  */
 'use strict'
 
-const express = require('express')
-const bodyParser = require('body-parser')
-const request = require('request')
-const app = express()
+const
+    express = require('express'),
+    bodyParser = require('body-parser'),
+    request = require('request'),
+    prop =  require('./config/properties.json'),
+    app = express();
 
-var VERIFY_TOKEN = 'my_voice_is_my_password_verify_me';
-var PAGE_ACCESS_TOKEN = 'EAAYxYoSrxRABAPsdBeZB6hR4FmUJR8dTZCP8kvlStkkU3xqUwTHzaBABbh0NESZA2UMtBqpx6ZAQ5FscE7ERe9u9xDsId52U6l6EOy8SqiZAsM3r0ZBUUwNfROtyZA9jiDB8uj8H4a22YZC5gKsumbiVRruxy323ErEYjAmjyW0KOQZDZD';
+var VALIDATION_TOKEN = prop.verify_token
+
 app.set('port', (process.env.PORT || 5000))
-
-
 
 // Process application/x-www-form-urlencoded
 app.use(bodyParser.urlencoded({extended: false}))
-
-// Process application/json
 app.use(bodyParser.json())
+app.use(express.static('public'));
+
+var sendToMessenger = require('./api/sendAPI');
 
 // Index route
 app.get('/', function (req, res) {
@@ -26,10 +27,8 @@ app.get('/', function (req, res) {
 });
 
 // for Facebook verification
-
-
 app.get('/webhook', function (req, res) {
-    if (req.query['hub.verify_token'] === VERIFY_TOKEN) {
+    if (req.query['hub.verify_token'] === VALIDATION_TOKEN) {
         console.log('Verify request');
         res.send(req.query['hub.challenge']);
     } else {
@@ -38,220 +37,310 @@ app.get('/webhook', function (req, res) {
 });
 
 
-app.post('/webhook/', function (req, res) {
-    let messaging_events = req.body.entry[0].messaging
-    for (let i = 0; i < messaging_events.length; i++) {
-        let event = req.body.entry[0].messaging[i]
-        let sender = event.sender.id
-        if (event.message && event.message.text) {
-            let text = event.message.text
-            if (text === 'Create Dispute') {
-                sendGenericMessage(sender)
-                continue
-            }
-            //sendTextMessage(sender, "Text received, echo: " + text.substring(0, 200))
+
+app.post('/webhook', function (req, res) {
+    var data = req.body;
+
+    // Make sure this is a page subscription
+    if (data.object == 'page') {
+        // Iterate over each entry
+        // There may be multiple if batched
+        data.entry.forEach(function(pageEntry) {
+            var pageID = pageEntry.id;
+            var timeOfEvent = pageEntry.time;
+            pageEntry.messaging.forEach(function(messagingEvent) {
+                if (messagingEvent.message && !messagingEvent.message.is_echo) {
+                    receivedMessage(messagingEvent);
+                }
+                else if (messagingEvent.delivery) {
+                    receivedDeliveryConfirmation(messagingEvent);
+                }
+                else if(messagingEvent.postback) {
+                    receivedPostback(messagingEvent);
+                }
+            });
+        });
+
+        res.sendStatus(200);
+    }
+});
+
+
+function receivedMessage(event) {
+    var senderID = event.sender.id;
+    var recipientID = event.recipient.id;
+    var timeOfMessage = event.timestamp;
+    var message = event.message;
+
+    console.log("Received message for user %d and page %d at %d with message:",
+        senderID, recipientID, timeOfMessage);
+    //console.log(JSON.stringify(message));
+
+
+    var messageText = message.text;
+    var messageAttachments = message.attachments;
+
+    if (messageText) {
+
+        // If we receive a text message, check to see if it matches a keyword
+        // and send back the example. Otherwise, just echo the text we received.
+        switch (messageText) {
+            case 'Create Dispute':
+                sendGenericMessage(senderID);
+                break;
+
+            default:
+                sendTextMessage(senderID, messageText);
         }
-        if (event.postback) {
-            let text = JSON.stringify(event.postback)
+    } else if (messageAttachments) {
+        sendTextMessage(senderID, "Message with attachment received");
+    }
+}
 
-            let action = event.postback.payload;
+/*
+ * Delivery Confirmation Event
+ *
+ * This event is sent to confirm the delivery of a message.
+ *
+ */
+function receivedDeliveryConfirmation(event) {
+    var delivery = event.delivery;
+    var messageIDs = delivery.mids;
+    var watermark = delivery.watermark;
 
-            console.log(action);
+    if (messageIDs) {
+        messageIDs.forEach(function(messageID) {
+            console.log("Received delivery confirmation for message ID: %s",
+                messageID);
+        });
+    }
+   // console.log("All message before %d were delivered.", watermark);
+}
 
-            if(action == 'Unauthorized') {
-               var type = 'Unauthorized TXN';
-                sendUnAuthorizedMessage(sender);
-                continue
-            }
 
-            else if(action == 'Fraud') {
-                type = 'Fraud TXN';
-                sendFraudMessage(sender);
-                continue
-            }
-            else if(action == 'Fishy') {
-                type = 'Fishy TXN';
-                sendFishyMessage(sender);
-                continue
-            }
-            else {
-            sendTextMessage(sender, "Received: "+action)
-            continue
-            }
+
+function receivedPostback(event) {
+    var senderID = event.sender.id;
+    var recipientID = event.recipient.id;
+    var timeOfPostback = event.timestamp;
+
+    // The 'payload' param is a developer-defined field which is set in a postback
+    // button for Structured Messages.
+    var payload = event.postback.payload;
+
+    console.log("Received postback for user %d and page %d with payload '%s' " +
+        "at %d", senderID, recipientID, payload, timeOfPostback);
+
+    // When a postback is called, we'll send a message back to the sender to
+    // let them know it was successful
+
+    if (payload) {
+
+        // If we receive a specific message, check to see if it matches a keyword
+        // and send back the example. Otherwise, just echo the text we received.
+        switch (payload) {
+            case 'Create Dispute':
+                sendGenericMessage(senderID);
+                break;
+            case 'Unauthorized':
+                sendUnAuthorizedMessage(senderID);
+                break;
+            case 'Fraud':
+                sendFraudMessage(senderID);
+                break;
+            case 'No_Card':
+                sendNoCard(senderID);
+                break;
+            case 'Fishy':
+                sendFishyMessage(senderID);
+                break;
+            case 'No-item-cash':
+                sendNoItemOrCash(senderID)
+                break;
+            case 'Problem-transaction':
+                  sendProblemTransaction(senderID);
+                 break;
+            case 'Problem-goods-services':
+                 sendProblemGoodsServices(senderID);
+                 break;
+            case 'problem_goods':
+                sendProblemGoods(senderID);
+                break;
+            case 'problem_services':
+                sendProblemServices(senderID)
+                break;
+
+            case 'where_card':
+            case 'misplaced_card':
+                sendTemporaryBlock(senderID)
+                break;
+            case 'loststolen_card':
+                sendLostStolenCard(senderID)
+                break;
+            case 'lost_card':
+                sendNewCard(senderID)
+                break;
+            case 'new_card':
+                sendNewCardDays(senderID)
+                break;
+
+            default:
+                sendTextMessage(senderID, "Received: "+payload);
         }
     }
-    res.sendStatus(200)
-})
-
-
-function sendTextMessage(sender, text) {
-    let messageData = { text:text }
-    callSendAPI(messageData,sender);
-    // request({
-    //     url: 'https://graph.facebook.com/v2.6/me/messages',
-    //     qs: {access_token:PAGE_ACCESS_TOKEN},
-    //     method: 'POST',
-    //     json: {
-    //         recipient: {id:sender},
-    //         message: messageData,
-    //     }
-    // }, function(error, response, body) {
-    //     if (error) {
-    //         console.log('Error sending messages: ', error)
-    //     } else if (response.body.error) {
-    //         console.log('Error: yyyy ', response.body.error)
-    //     }
-    // })
 }
 
+function sendTextMessage(recipientId, messageText) {
+    //var messageData = { text:messageText }
 
-function sendGenericMessage(sender) {
-    let messageData = {
-        "attachment": {
-            "type": "template",
-            "payload": {
-                "template_type": "button",
-                "text": "Hi Madhvesh"  + ", How can I help you. What do you want to report?",
-                "buttons": [
-                    {
-                        "type": "postback",
-                        "title": "Unauthorized TXN",
-                        "payload": "Unauthorized"
-                    },
-                    {
-                        "type": "postback",
-                        "title": "Fraud TXN",
-                        "payload": "Fraud"
-                    },
-                    {
-                        "type": "postback",
-                        "title": "Fishy TXN",
-                        "payload": "Fishy"
-                    }
-                ]
-            }
-        }
-    }
-    callSendAPI(messageData,sender);
-
-}
-
-function sendFishyMessage(sender) {
-    var messageData = {
-        "attachment": {
-            "type": "template",
-            "payload": {
-                "template_type": "button",
-                "text": "Okay, you believe something has gone wrong with this transaction/purchase",
-                "buttons": [
-                    {
-                        "type": "postback",
-                        "title": "Did not receive item/cash",
-                        "payload": "Did not receive item/cash"
-                    },
-                    {
-                        "type": "postback",
-                        "title": " Problem with goods/services",
-                        "payload": " Problem with goods/services"
-                    },
-                    {
-                        "type": "postback",
-                        "title": "Problem with transaction",
-                        "payload": "Problem with transaction"
-                    }
-                ]
-            }
+   var messageData = {
+        recipient: {
+            id: recipientId
+        },
+        message: {
+            text: messageText,
+            metadata: "Test Metadata"
         }
     };
-    callSendAPI(messageData, sender);
+     //callSendAPINew(messageData,recipientId);
+    sendToMessenger.sendAPIForMessage(messageData);
 }
 
-function sendFraudMessage(sender) {
+function sendGenericMessage(recipientId) {
+    var genericTemplate = require('./messagetemplates/genericMessage');
+    var message = genericTemplate.getGenericMessage(recipientId);
+    sendToMessenger.sendAPIForMessage(message);
+}
+
+//For payload - Unauthorized
+function sendUnAuthorizedMessage(recipientId) {
+
+    var notAuthTemplate = require('./messagetemplates/notAuthorized');
+    var message = notAuthTemplate.getUnAuthorizedMessage(recipientId);
+    sendToMessenger.sendAPIForMessage(message);
+}
+
+
+//Method for fraud postback
+function sendFraudMessage(recipientId) {
+    var fraudTemplate = require('./messagetemplates/fraudMessage');
+    var message = fraudTemplate.getFraudMessage(recipientId);
+    sendToMessenger.sendAPIForMessage(message);
+}
+
+//For postback No_Card (2.3)
+function  sendNoCard(recipientId) {
+    var fraudTemplate = require('./messagetemplates/fraudMessage');
+    var message = fraudTemplate.getNoCardMessage(recipientId);
+    sendToMessenger.sendAPIForMessage(message);
+}
+
+//Postback for where_card or stolen_card
+function sendTemporaryBlock(recipientId) {
+    var fraudTemplate = require('./messagetemplates/fraudMessage');
+    var message = fraudTemplate.getTemporaryBlockMessage(recipientId);
+    sendToMessenger.sendAPIForMessage(message);
+}
+
+
+//Postback for loststolen_card - 2.3.3.1 and 2.3.3.2
+function sendLostStolenCard(recipientId) {
+    var fraudTemplate = require('./messagetemplates/fraudMessage');
+    var message = fraudTemplate.getLostStolenCardMessage(recipientId);
+    sendToMessenger.sendAPIForMessage(message);
+}
+
+//Postback for lost_card or stolen_card - 2.3.3.2.1
+function sendNewCard(recipientId) {
+    var fraudTemplate = require('./messagetemplates/fraudMessage');
+    var message = fraudTemplate.getNewCardMessage(recipientId);
+    sendToMessenger.sendAPIForMessage(message);
+
+}
+
+//Postback for new_card - 2.3.3.2.1.1 and 2.3.3.2.1.2
+function sendNewCardDays(recipientId) {
+    var fraudTemplate = require('./messagetemplates/fraudMessage');
+    var message = fraudTemplate.getNewCardDaysMessage(recipientId);
+    sendToMessenger.sendAPIForMessage(message);
+
+}
+
+//For payload - Fishy of problem transaction
+function sendFishyMessage(recipientId) {
+    var problemTemplate = require('./messagetemplates/problemTransaction');
+    var message = problemTemplate.getProblemFishyTransactionMessage(recipientId);
+    sendToMessenger.sendAPIForMessage(message);
+}
+
+//For payload - No-item-cash of problem transaction
+function sendNoItemOrCash(recipientId) {
+    var problemTemplate = require('./messagetemplates/problemTransaction');
+    var message = problemTemplate.getNoItemOrCashMessage(recipientId);
+    sendToMessenger.sendAPIForMessage(message);
+}
+
+//For payload - Problem-goods-services of problem transaction
+function sendProblemGoodsServices(recipientId) {
+    var problemTemplate = require('./messagetemplates/problemTransaction');
+    var message = problemTemplate.getProblemGoodsServicesMessage(recipientId);
+    sendToMessenger.sendAPIForMessage(message);
+}
+
+//For payload - problem_goods of problem transaction
+function sendProblemGoods(recipientId) {
+
+    var problemTemplate = require('./messagetemplates/problemTransaction');
+    var message = problemTemplate.getProblemGoodsMessage(recipientId);
+    sendToMessenger.sendAPIForMessage(message);
+}
+
+//For payload - problem_services of problem transaction
+function sendProblemServices(recipientId) {
+    var problemTemplate = require('./messagetemplates/problemTransaction');
+    var message = problemTemplate.getProblemServicesMessage(recipientId);
+    sendToMessenger.sendAPIForMessage(message);
+}
+
+
+//For payload - Problem-transaction of problem transaction
+function sendProblemTransaction(recipientId) {
+    var problemTemplate = require('./messagetemplates/problemTransaction');
+    var message = problemTemplate.getProblemTransactionMessage(recipientId);
+    sendToMessenger.sendAPIForMessage(message);
+}
+
+
+
+function setGreetingText() {
     var messageData = {
-        "attachment": {
-            "type": "template",
-            "payload": {
-                "template_type": "button",
-                "text": "You have your card but believe it has been compromised?(select Compromised)",
-                "buttons": [
-                    {
-                        "type": "postback",
-                        "title": "Yes have card",
-                        "payload": "yes_card"
-                    },
-                    {
-                        "type": "postback",
-                        "title": "Don't have card",
-                        "payload": "no_card"
-                    },
-                    {
-                        "type": "postback",
-                        "title": "Compromised card",
-                        "payload": "compromised_card"
-                    }
-                ]
-            }
+        setting_type: "greeting",
+        greeting:{
+            text:"Hi {{user_full_name}}, welcome!"
         }
     };
-    callSendAPI(messageData, sender);
+    sendToMessenger.sendAPIForGreeting(messageData);
 }
 
-function sendUnAuthorizedMessage(sender) {
+function invokeDispute() {
+
     var messageData = {
-        "attachment": {
-            "type": "template",
-            "payload": {
-                "template_type": "button",
-                "text": "I see, so you are not sure if you had authorized the transaction/purchase. What exactly you don't recognize?",
-                "buttons": [
-                    {
-                        "type": "postback",
-                        "title": "Merchant",
-                        "payload": "I don’t recognize the Merchant"
-                    },
-                    {
-                        "type": "postback",
-                        "title": "Amount",
-                        "payload": "I don’t recognize the Amount"
-                    },
-                    {
-                        "type": "postback",
-                        "title": "Merchant/Amount",
-                        "payload": "I don’t recognize the Merchant/Amount"
-                    }
-                ]
+        setting_type:"call_to_actions",
+        thread_state:"new_thread",
+        call_to_actions:[
+            {
+                payload:"Create Dispute"
             }
-        }
+        ]
     };
-    callSendAPI(messageData, sender);
-}
-
-function callSendAPI(messageData,sender) {
-    request({
-        uri: 'https://graph.facebook.com/v2.6/me/messages',
-        qs: { access_token: PAGE_ACCESS_TOKEN },
-        method: 'POST',
-        json: {
-            recipient: {id:sender},
-            message: messageData
-         }
-
-    }, function (error, response, body) {
-        if (!error && response.statusCode == 200) {
-            var recipientId = body.recipient_id;
-            var messageId = body.message_id;
-
-            console.log("Successfully sent generic message with id %s to recipient %s",
-                messageId, recipientId);
-        } else {
-            console.error("Unable to send message.");
-            //console.error(response);
-            //console.error(error);
-        }
-    });
+    sendToMessenger.sendAPIForGreeting(messageData);
 }
 
 // Spin up the server
 app.listen(app.get('port'), function() {
     console.log('running on port', app.get('port'))
-})
+    setGreetingText();
+    invokeDispute();
+
+});
+

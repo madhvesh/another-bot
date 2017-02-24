@@ -5,6 +5,8 @@ logs
 npm-debug.log
 .migrate
 *.rdb
+*.png
+
 
 # Runtime data
 pids

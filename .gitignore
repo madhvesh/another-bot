@@ -1,12 +1,13 @@
 .DS_Store
 gs
 logs
+examples
 *.log
 npm-debug.log
 .migrate
 *.rdb
 *.png
-
+refer.txt
 
 # Runtime data
 pids

@@ -1,0 +1,947 @@
+imei: 014256004189546
+https://dbot-madhvesh.herokuapp.com/webhook/
+
+ngrok http 5000
+
+WM-C02QL2WLG8WM:dbot manavkal$ git remote -v
+heroku  https://git.heroku.com/dbot-madhvesh.git (fetch)
+heroku  https://git.heroku.com/dbot-madhvesh.git (push)
+origin  https://github.com/madhvesh/dbot.git (fetch)
+origin  https://github.com/madhvesh/dbot.git (push)
+
+
+    
+envoy - lyft
+process per connection
+
+envoy - lot of services bundled together ...its a proxy (generic holder for various functionality) ..it has service discovery...load balancing...edge proxy
+A unique request ID logging for tracking the request in kibana
+lightstep for tracing
+wavefront for stats
+
+sidecars - netflix
+onion architecture - 
+capabilites I want the service to do? Core capabilites of the product
+pull out stateless functionality...easy ones which are benefitial
+
+   
+curl -X POST -H "Content-Type: application/json" -d '{"setting_type" : "domain_whitelisting","whitelisted_domains" : ["https://messengerdemo.parseapp.com"],"domain_action_type": "add"}' "https://graph.facebook.com/v2.6/me/thread_settings?access_token=EAAYxYoSrxRABAPsdBeZB6hR4FmUJR8dTZCP8kvlStkkU3xqUwTHzaBABbh0NESZA2UMtBqpx6ZAQ5FscE7ERe9u9xDsId52U6l6EOy8SqiZAsM3r0ZBUUwNfROtyZA9jiDB8uj8H4a22YZC5gKsumbiVRruxy323ErEYjAmjyW0KOQZDZD"
+
+
+            // case 'Receipt':
+            //     sendReceiptMessage(senderID)
+            //     break;
+            // case 'Dispute Payload':
+            //     sendMessagewithList(senderID)
+            //     break;
+function sendMessagewithList(recipientId) {
+    var messageData = {
+        recipient: {
+            id: recipientId
+        },
+        message: {
+            attachment: {
+                type: "template",
+                payload: {
+                    template_type: "list",
+                    top_element_style: "compact",
+                    elements: [
+                        {
+                            title: "Rift + Touch",
+                            image_url: "https://3e619d5a.ngrok.io/assets/rift.png",
+                            subtitle: "Next-generation virtual reality just got better",
+                            default_action: {
+                                type: "web_url",
+                                url: "https://messengerdemo.parseapp.com/",
+                                messenger_extensions: true,
+                                webview_height_ratio: "tall",
+                                fallback_url: "https://messengerdemo.parseapp.com/"
+                            },
+                            buttons: [
+                                {
+                                    title: "Dispute",
+                                    type: "web_url",
+                                    url: "https://messengerdemo.parseapp.com/img/rift.png",
+                                    messenger_extensions: true,
+                                    webview_height_ratio: "tall",
+                                    fallback_url: "https://messengerdemo.parseapp.com/"
+                                }
+                            ]
+                        },
+                        {
+                            title: "Gululu Interactive Water Bottle",
+                            image_url: "https://3e619d5a.ngrok.io/assets/gululu.png",
+                            subtitle: "100% Cotton, 200% Comfortable",
+                            default_action: {
+                                type: "web_url",
+                                url: "https://messengerdemo.parseapp.com/img/rift.png",
+                                messenger_extensions: true,
+                                webview_height_ratio: "tall",
+                                fallback_url: "https://messengerdemo.parseapp.com/"
+                            },
+                            buttons: [
+                                {
+                                    title: "Dispute",
+                                    type: "web_url",
+                                    url: "https://messengerdemo.parseapp.com/img/rift.png",
+                                    messenger_extensions: true,
+                                    webview_height_ratio: "tall",
+                                    fallback_url: "https://messengerdemo.parseapp.com/"
+                                }
+                            ]
+                        }
+                    ],
+                    buttons: [
+                        {
+                            title: "View More",
+                            type: "postback",
+                            payload: "payload"
+                        }
+                    ]
+                }
+            }
+        }
+    }
+    callSendAPINew(messageData);
+}
+
+function sendMessagewithImage(recipientId) {
+    console.log(process.env.SERVER_URL);
+    var messageData = {
+        recipient: {
+            id: recipientId
+        },
+        message: {
+            attachment: {
+                type: "template",
+
+                payload: {
+                    template_type: "generic",
+                    //text: "Which of these Items do you not receive",
+                    elements: [{
+                        title: "Rift",
+                        subtitle: "Next-generation virtual reality",
+                        item_url: "https://www.oculus.com/en-us/rift/",
+                        image_url: "https://3e619d5a.ngrok.io/assets/rift.png",
+                        buttons: [{
+                            type: "postback",
+                            title: "Get more Info",
+                            payload: "Receipt"
+                        }, {
+                            type: "postback",
+                            title: "Dispute",
+                            payload: "Dispute Payload",
+                        }],
+                    }, {
+                        title: "Gululu",
+                        subtitle: "Gululu-Interactive-Water",
+                        item_url: "https://www.amazon.com/Gululu-Interactive-Water-Bottle-Monster/dp/B01N0SO9C1/",
+                        image_url: "https://3e619d5a.ngrok.io/assets/gululu.png",
+                        buttons: [{
+                            type: "postback",
+                            title: "Get more Info",
+                            payload: "Receipt"
+                        }, {
+                            type: "postback",
+                            title: "Dispute",
+                            payload: "Dispute Payload",
+                        }]
+                    }]
+                }
+            }
+        }
+    };
+
+    callSendAPINew(messageData);
+}
+
+
+function sendReceiptMessage(recipientId) {
+    // Generate a random receipt ID as the API requires a unique ID
+    var receiptId = "order" + Math.floor(Math.random()*1000);
+
+    var messageData = {
+        recipient: {
+            id: recipientId
+        },
+        message:{
+            attachment: {
+                type: "template",
+                payload: {
+                    template_type: "receipt",
+                    recipient_name: "Madhvesh Navkal",
+                    order_number: receiptId,
+                    currency: "USD",
+                    payment_method: "Visa 1234",
+                    timestamp: "1428444852",
+                    elements: [{
+                        title: "Oculus Rift",
+                        subtitle: "Includes: headset, sensor, remote",
+                        quantity: 1,
+                        price: 599.00,
+                        currency: "USD",
+                        image_url: "https://3e619d5a.ngrok.io/assets/rift.png"
+                    }, {
+                        title: "Gululu Interactive water bottle",
+                        subtitle: "Mint Green",
+                        quantity: 1,
+                        price: 99.99,
+                        currency: "USD",
+                        image_url: "https://3e619d5a.ngrok.io/assets/gululu.png"
+                    }],
+                    address: {
+                        street_1: "900 Metro Center Blvd",
+                        street_2: "",
+                        city: "Foster City",
+                        postal_code: "94118",
+                        state: "CA",
+                        country: "US"
+                    },
+                    summary: {
+                        subtotal: 698.99,
+                        shipping_cost: 20.00,
+                        total_tax: 57.67,
+                        total_cost: 626.66
+                    },
+                    adjustments: [{
+                        name: "New Customer Discount",
+                        amount: -50
+                    }, {
+                        name: "$100 Off Coupon",
+                        amount: -100
+                    }]
+                }
+            }
+        }
+    };
+
+    callSendAPINew(messageData);
+}
+
+/**********JS FILE************
+
+
+/**
+ * Created by manavkal on 12/21/16.
+ */
+'use strict'
+
+const
+    express = require('express'),
+    bodyParser = require('body-parser'),
+    request = require('request'),
+    prop =  require('./config/properties.json'),
+    app = express();
+
+var VALIDATION_TOKEN = prop.verify_token
+//var PAGE_ACCESS_TOKEN = 'EAAYxYoSrxRABAPsdBeZB6hR4FmUJR8dTZCP8kvlStkkU3xqUwTHzaBABbh0NESZA2UMtBqpx6ZAQ5FscE7ERe9u9xDsId52U6l6EOy8SqiZAsM3r0ZBUUwNfROtyZA9jiDB8uj8H4a22YZC5gKsumbiVRruxy323ErEYjAmjyW0KOQZDZD';
+
+app.set('port', (process.env.PORT || 5000))
+
+// Process application/x-www-form-urlencoded
+app.use(bodyParser.urlencoded({extended: false}))
+app.use(bodyParser.json())
+app.use(express.static('public'));
+
+var sendToMessenger = require('./api/sendAPI');
+
+// Index route
+app.get('/', function (req, res) {
+    res.send('This is TestBot Server');
+});
+
+// for Facebook verification
+app.get('/webhook', function (req, res) {
+    if (req.query['hub.verify_token'] === VALIDATION_TOKEN) {
+        console.log('Verify request');
+        res.send(req.query['hub.challenge']);
+    } else {
+        res.send('Invalid verify token');
+    }
+});
+
+
+
+app.post('/webhook', function (req, res) {
+    var data = req.body;
+
+    // Make sure this is a page subscription
+    if (data.object == 'page') {
+        // Iterate over each entry
+        // There may be multiple if batched
+        data.entry.forEach(function(pageEntry) {
+            var pageID = pageEntry.id;
+            var timeOfEvent = pageEntry.time;
+            pageEntry.messaging.forEach(function(messagingEvent) {
+                if (messagingEvent.message && !messagingEvent.message.is_echo) {
+                    receivedMessage(messagingEvent);
+                }
+                else if (messagingEvent.delivery) {
+                    receivedDeliveryConfirmation(messagingEvent);
+                }
+                else if(messagingEvent.postback) {
+                    receivedPostback(messagingEvent);
+                }
+            });
+        });
+
+        res.sendStatus(200);
+    }
+});
+
+// app.post('/webhook/', function (req, res) {
+//     var data = req.body;
+//     var events = data.entry[0].messaging;
+//
+//     for (let i = 0; i < events.length; i++) {
+//         var event = events[i];
+//         if (event.message && event.message.text && !event.message.is_echo) {
+//             receivedMessage(event);
+//         }
+//         else if(event.postback) {
+//             receivedPostback(event);
+//         }
+//     }
+//     res.sendStatus(200)
+// });
+
+function receivedMessage(event) {
+    var senderID = event.sender.id;
+    var recipientID = event.recipient.id;
+    var timeOfMessage = event.timestamp;
+    var message = event.message;
+
+    console.log("Received message for user %d and page %d at %d with message:",
+        senderID, recipientID, timeOfMessage);
+    //console.log(JSON.stringify(message));
+
+
+    var messageText = message.text;
+    var messageAttachments = message.attachments;
+
+    if (messageText) {
+
+        // If we receive a text message, check to see if it matches a keyword
+        // and send back the example. Otherwise, just echo the text we received.
+        switch (messageText) {
+            case 'Create Dispute':
+                sendGenericMessage(senderID);
+                break;
+
+            default:
+                sendTextMessage(senderID, messageText);
+        }
+    } else if (messageAttachments) {
+        sendTextMessage(senderID, "Message with attachment received");
+    }
+}
+
+/*
+ * Delivery Confirmation Event
+ *
+ * This event is sent to confirm the delivery of a message.
+ *
+ */
+function receivedDeliveryConfirmation(event) {
+    var delivery = event.delivery;
+    var messageIDs = delivery.mids;
+    var watermark = delivery.watermark;
+
+    if (messageIDs) {
+        messageIDs.forEach(function(messageID) {
+            console.log("Received delivery confirmation for message ID: %s",
+                messageID);
+        });
+    }
+   // console.log("All message before %d were delivered.", watermark);
+}
+
+
+
+function receivedPostback(event) {
+    var senderID = event.sender.id;
+    var recipientID = event.recipient.id;
+    var timeOfPostback = event.timestamp;
+
+    // The 'payload' param is a developer-defined field which is set in a postback
+    // button for Structured Messages.
+    var payload = event.postback.payload;
+
+    console.log("Received postback for user %d and page %d with payload '%s' " +
+        "at %d", senderID, recipientID, payload, timeOfPostback);
+
+    // When a postback is called, we'll send a message back to the sender to
+    // let them know it was successful
+
+    if (payload) {
+
+        // If we receive a specific message, check to see if it matches a keyword
+        // and send back the example. Otherwise, just echo the text we received.
+        switch (payload) {
+            case 'Create Dispute':
+                sendGenericMessage(senderID);
+                break;
+            case 'Unauthorized':
+                sendUnAuthorizedMessage(senderID);
+                break;
+            case 'Fraud':
+                sendFraudMessage(senderID);
+                break;
+            case 'No_Card':
+                sendNoCard(senderID);
+                break;
+            case 'Fishy':
+                sendFishyMessage(senderID);
+                break;
+            case 'No-item-cash':
+                sendNoItemOrCash(senderID)
+                break;
+            case 'Problem-transaction':
+                  sendProblemTransaction(senderID);
+                 break;
+            case 'Problem-goods-services':
+                 sendProblemGoodsServices(senderID);
+                 break;
+            case 'problem_goods':
+                sendProblemGoods(senderID);
+                break;
+            case 'problem_services':
+                sendProblemServices(senderID)
+                break;
+
+            case 'where_card':
+            case 'misplaced_card':
+                sendTemporaryBlock(senderID)
+                break;
+            case 'loststolen_card':
+                sendLostStolenCard(senderID)
+                break;
+            case 'lost_card':
+                sendNewCard(senderID)
+                break;
+            case 'new_card':
+                sendNewCardDays(senderID)
+                break;
+
+            default:
+                sendTextMessage(senderID, "Received: "+payload);
+        }
+    }
+}
+
+function sendTextMessage(recipientId, messageText) {
+    //var messageData = { text:messageText }
+
+   var messageData = {
+        recipient: {
+            id: recipientId
+        },
+        message: {
+            text: messageText,
+            metadata: "Test Metadata"
+        }
+    };
+     //callSendAPINew(messageData,recipientId);
+    sendToMessenger.sendAPIForMessage(messageData);
+}
+
+function sendGenericMessage(recipientId) {
+    var genericTemplate = require('./messagetemplates/genericMessage');
+    var message = genericTemplate.getGenericMessage(recipientId);
+
+
+    sendToMessenger.sendAPIForMessage(message);
+}
+//For payload - Unauthorized
+function sendUnAuthorizedMessage(recipientId) {
+
+    var notAuthTemplate = require('./messagetemplates/notAuthorized');
+    var message = notAuthTemplate.getUnAuthorizedMessage(recipientId);
+
+    // var messageData = {
+    //     recipient: {
+    //         id: recipientId
+    //     },
+    //     message: {
+    //         attachment: {
+    //             type: "template",
+    //             payload: {
+    //                 template_type: "button",
+    //                 text: "I see, so you are not sure if you had authorized the transaction/purchase. What exactly you don't recognize?",
+    //                 buttons:[{
+    //                     type: "postback",
+    //                     title: "Merchant",
+    //                     payload: "merchant_notrecognized"
+    //                 }, {
+    //                     type: "postback",
+    //                     title: "Amount",
+    //                     payload: "I don’t recognize the Amount"
+    //                 }, {
+    //                     type: "postback",
+    //                     title: "Merchant/Amount",
+    //                     payload: "I don’t recognize the Merchant/Amount"
+    //                 }]
+    //             }
+    //         }
+    //     }
+    // };
+
+    //callSendAPINew(messageData);
+    sendToMessenger.sendAPIForMessage(message);
+}
+
+
+//Method for fraud postback
+function sendFraudMessage(recipientId) {
+    var messageData = {
+        recipient: {
+            id: recipientId
+        },
+        message: {
+            attachment: {
+                type: "template",
+                payload: {
+                    template_type: "button",
+                    text: "You are sure you have not authorized this transaction/purchase, it may be a Fraud. Please select one.",
+                    buttons:[{
+                        type: "postback",
+                        title: "I have the card",
+                        payload: "Yes_Card"
+                    }, {
+                        type: "postback",
+                        title: "Compromised card",
+                        payload: "Compromised_Card"
+                    },{
+                        type: "postback",
+                        title: "Don't have card",
+                        payload: "No_Card"
+                    }]
+                }
+            }
+        }
+    };
+
+    //callSendAPINew(messageData);
+    sendToMessenger.sendAPIForMessage(messageData);
+}
+//For postback No_Card (2.3)
+function  sendNoCard(recipientId) {
+
+    var messageData = {
+        recipient: {
+            id: recipientId
+        },
+        message: {
+            attachment: {
+                type: "template",
+                payload: {
+                    template_type: "button",
+                    text: "You don`t have your card currently but believe it has been compromised?(select Compromised)",
+                    buttons: [{
+                        //2.3.1
+                        type: "postback",
+                        title: "Card Not with me",
+                        payload: "where_card"
+                    }, {
+                        //2.3.2
+                        type: "postback",
+                        title: "Card Misplaced",
+                        payload: "misplaced_card"
+                    }, {
+                        //2.3.3
+                        type: "postback",
+                        title: "Lost/Stolen",
+                        payload: "loststolen_card"
+                    }]
+                }
+            }
+        }
+
+    }
+    //callSendAPINew(messageData);
+    sendToMessenger.sendAPIForMessage(messageData);
+}
+//Postback for where_card or stolen_card
+function sendTemporaryBlock(recipientId) {
+    var messageData = {
+        recipient: {
+            id: recipientId
+        },
+        message: {
+            attachment: {
+                type: "template",
+                payload: {
+                    template_type: "button",
+                    text: "You have your card but believe it is not with you",
+                    buttons: [{
+                        type: "postback",
+                        title: "Temporary Block",
+                        payload: "block_card"
+                    }]
+                }
+            }
+        }
+
+    }
+   // callSendAPINew(messageData);
+    sendToMessenger.sendAPIForMessage(messageData);
+
+}
+
+
+//Postback for loststolen_card - 2.3.3.1 and 2.3.3.2
+function sendLostStolenCard(recipientId) {
+    var messageData = {
+        recipient: {
+            id: recipientId
+        },
+        message: {
+            attachment: {
+                type: "template",
+                payload: {
+                    template_type: "button",
+                    text: "You have lost your card or it is stolen",
+                    buttons: [{
+                        type: "postback",
+                        title: "Stolen",
+                        payload: "stolen_card"
+                    },{
+                        //2.3.3
+                        type: "postback",
+                        title: "Lost",
+                        payload: "lost_card"
+                    }]
+                }
+            }
+        }
+
+    }
+    //callSendAPINew(messageData);
+    sendToMessenger.sendAPIForMessage(messageData);
+ }
+
+//Postback for lost_card or stolen_card - 2.3.3.2.1
+function sendNewCard(recipientId) {
+    var messageData = {
+        recipient: {
+            id: recipientId
+        },
+        message: {
+            attachment: {
+                type: "template",
+                payload: {
+                    template_type: "button",
+                    text: "You have lost your card but believe need a new one",
+                    buttons: [{
+                        type: "postback",
+                        title: "New Card",
+                        payload: "new_card"
+                    }]
+                }
+            }
+        }
+
+    }
+    //callSendAPINew(messageData);
+    sendToMessenger.sendAPIForMessage(messageData);
+    }
+
+//Postback for new_card - 2.3.3.2.1.1 and 2.3.3.2.1.2
+function sendNewCardDays(recipientId) {
+    var messageData = {
+        recipient: {
+            id: recipientId
+        },
+        message: {
+            attachment: {
+                type: "template",
+                payload: {
+                    template_type: "button",
+                    text: "When do you want to have your card shipped",
+                    buttons: [{
+                        type: "postback",
+                        title: "Urgently",
+                        payload: "ship_urgent"
+                    },{
+                        //2.3.3
+                        type: "postback",
+                        title: "It can wait",
+                        payload: "ship_wait"
+                    }]
+                }
+            }
+        }
+
+    }
+    //callSendAPINew(messageData);
+    sendToMessenger.sendAPIForMessage(messageData);
+}
+
+//For payload - Fishy of problem transaction
+function sendFishyMessage(recipientId) {
+    var messageData = {
+        recipient: {
+            id: recipientId
+        },
+        message: {
+            attachment: {
+                type: "template",
+                payload: {
+                    template_type: "button",
+                    text: "Okay, you believe something has gone wrong with this transaction/purchase",
+                    buttons:[{
+                        type: "postback",
+                        title: "Did not receive item/cash",
+                        payload: "No-item-cash"
+                    }, {
+                        type: "postback",
+                        title: "Problem with goods/services",
+                        payload: "Problem-goods-services"
+                    }, {
+                        type: "postback",
+                        title: "Problem with transaction",
+                        payload: "Problem-transaction"
+                    }]
+                }
+            }
+        }
+    };
+
+    //callSendAPINew(messageData);
+    sendToMessenger.sendAPIForMessage(messageData);
+}
+
+//For payload - No-item-cash of problem transaction
+function sendNoItemOrCash(recipientId) {
+    var messageData = {
+        recipient: {
+            id: recipientId
+        },
+        message: {
+            attachment: {
+                type: "template",
+                payload: {
+                    template_type: "button",
+                    text: " I didn’t receive the item/s or cash",
+                    buttons: [{
+                        type: "postback",
+                        title: "Any of the it",
+                        payload: "any_cash_item"
+                    },{
+                        //2.3.3
+                        type: "postback",
+                        title: "Some of the it",
+                        payload: "some_cash_item"
+                    }]
+                }
+            }
+        }
+
+    }
+    //callSendAPINew(messageData);
+    sendToMessenger.sendAPIForMessage(messageData);
+}
+
+//For payload - Problem-goods-services of problem transaction
+function sendProblemGoodsServices(recipientId) {
+    var messageData = {
+        recipient: {
+            id: recipientId
+        },
+        message: {
+            attachment: {
+                type: "template",
+                payload: {
+                    template_type: "button",
+                    text: " Problem with the goods/services",
+                    buttons: [{
+                        type: "postback",
+                        title: "Goods/Merchandise",
+                        payload: "problem_goods"
+                    },{
+
+                        type: "postback",
+                        title: "Services",
+                        payload: "problem_services"
+                    }]
+                }
+            }
+        }
+
+    }
+    //callSendAPINew(messageData);
+    sendToMessenger.sendAPIForMessage(messageData);
+}
+
+//For payload - problem_goods of problem transaction
+function sendProblemGoods(recipientId) {
+
+    var messageData = {
+        recipient: {
+            id: recipientId
+        },
+        message: {
+            attachment: {
+                type: "template",
+                payload: {
+                    template_type: "button",
+                    text: " Problem with the goods/services",
+                    buttons: [{
+                        type: "postback",
+                        title: "Different Quality",
+                        payload: "problem_quality"
+                    },{
+
+                        type: "postback",
+                        title: "Not on time",
+                        payload: "problem_time"
+                    }]
+                }
+            }
+        }
+
+    }
+   // callSendAPINew(messageData);
+    sendToMessenger.sendAPIForMessage(messageData);
+}
+
+//For payload - problem_services of problem transaction
+function sendProblemServices(recipientId) {
+    var messageData = {
+        recipient: {
+            id: recipientId
+        },
+        message: {
+            attachment: {
+                type: "template",
+                payload: {
+                    template_type: "button",
+                    text: " Problem with the goods/services",
+                    buttons: [{
+                        type: "postback",
+                        title: "Different Quality",
+                        payload: "problem_service_quality"
+                    },{
+
+                        type: "postback",
+                        title: "Not on time",
+                        payload: "problem_service_time"
+                    }]
+                }
+            }
+        }
+
+    }
+    //callSendAPINew(messageData);
+    sendToMessenger.sendAPIForMessage(messageData);
+}
+
+
+//For payload - Problem-transaction of problem transaction
+function sendProblemTransaction(recipientId) {
+    var messageData = {
+        recipient: {
+            id: recipientId
+        },
+        message: {
+            attachment: {
+                type: "template",
+                payload: {
+                    template_type: "button",
+                    text: " I didn’t receive the item/s or cash",
+                    buttons: [{
+                        type: "postback",
+                        title: "Incorrect Amount",
+                        payload: "incorrect_amount"
+                    },{
+
+                        type: "postback",
+                        title: "Charged Twice",
+                        payload: "charged_twice"
+                    }]
+                }
+            }
+        }
+
+    }
+    //callSendAPINew(messageData);
+    sendToMessenger.sendAPIForMessage(messageData);
+}
+
+
+
+function setGreetingText() {
+    var messageData = {
+        setting_type: "greeting",
+        greeting:{
+            text:"Hi {{user_full_name}}, welcome!"
+        }
+    };
+    sendToMessenger.sendAPIForGreeting(messageData);
+}
+
+function invokeDispute() {
+
+    var messageData = {
+        setting_type:"call_to_actions",
+        thread_state:"new_thread",
+        call_to_actions:[
+            {
+                payload:"Create Dispute"
+            }
+        ]
+    };
+    sendToMessenger.sendAPIForGreeting(messageData);
+}
+
+// Spin up the server
+app.listen(app.get('port'), function() {
+    console.log('running on port', app.get('port'))
+    setGreetingText();
+    invokeDispute();
+
+});
+
+
+// function callSendAPINew(messageData) {
+//     request({
+//         uri: 'https://graph.facebook.com/v2.6/me/messages',
+//         qs: { access_token: PAGE_ACCESS_TOKEN },
+//         method: 'POST',
+//         json: messageData
+//
+//     }, function (error, response, body) {
+//         if (!error && response.statusCode == 200) {
+//             var recipientId = body.recipient_id;
+//             var messageId = body.message_id;
+//
+//             if (messageId) {
+//                 console.log("Successfully sent message with id %s to recipient %s",
+//                     messageId, recipientId);
+//             } else {
+//                 console.log("Successfully called Send API for recipient %s",
+//                     recipientId);
+//             }
+//         } else {
+//             console.error("Failed calling Send API", response.statusCode, response.statusMessage, body.error);
+//         }
+//     });
+// }
+//
+// function callSendAPIForGreeting(messageData) {
+//     request({
+//         uri: 'https://graph.facebook.com/v2.6/me/thread_settings',
+//         qs: { access_token: PAGE_ACCESS_TOKEN },
+//         method: 'POST',
+//         json: messageData
+//
+//     }, function (error, response, body) {
+//         if (!error && response.statusCode == 200) {
+//             console.log("Greeting set successfully!");
+//         } else {
+//             console.error("Failed calling Thread Reference API", response.statusCode,     response.statusMessage, body.error);
+//         }
+//     });
+// }
+
+

@@ -12,7 +12,7 @@ function getUnAuthorizedMessage(recipientId) {
                 type: "template",
                 payload: {
                     template_type: "button",
-                    text: "I see, so you are not sure if you had authorized the transaction/purchase. What exactly you don't recognize?",
+                    text: "I see, so you are not sure if about this transaction/purchase. What exactly don't you recognize?",
                     buttons:[{
                         type: "postback",
                         title: "Merchant",
@@ -23,7 +23,7 @@ function getUnAuthorizedMessage(recipientId) {
                         payload: "I don’t recognize the Amount"
                     }, {
                         type: "postback",
-                        title: "Merchant/Amount",
+                        title: "Merchant and Amount",
                         payload: "I don’t recognize the Merchant/Amount"
                     }]
                 }

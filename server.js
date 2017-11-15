@@ -14,6 +14,7 @@ var fs = require('fs');
 var http = require('http');
 var https = require('https');
 
+
 var options = {
   key: fs.readFileSync('sslcert/key.pem'),
   cert: fs.readFileSync('sslcert/cert.pem')
@@ -29,6 +30,7 @@ app.set('port', (process.env.PORT || 5000))
 app.use(bodyParser.urlencoded({extended: false}))
 app.use(bodyParser.json())
 app.use(express.static('public'));
+
 
 var sendToMessenger = require('./api/sendAPI');
 

@@ -8,6 +8,8 @@ npm-debug.log
 *.rdb
 *.png
 refer.txt
+sslcert
+https.js
 
 # Runtime data
 pids
